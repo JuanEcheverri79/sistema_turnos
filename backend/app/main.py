@@ -1,9 +1,12 @@
 from fastapi import FastAPI
 
+from app.core.config import settings
+
+
 app = FastAPI(
-    title="Sistema de Gestión de Turnos",
+    title=settings.app_name,
     description="API para la gestión de clientes, turnos y atención en entidades de servicio.",
-    version="0.1.0"
+    version=settings.app_version
 )
 
 
@@ -11,7 +14,7 @@ app = FastAPI(
 def inicio():
     return {
         "mensaje": "Sistema de Gestión de Turnos funcionando correctamente",
-        "version": "0.1.0"
+        "version": settings.app_version
     }
 
 
@@ -19,5 +22,6 @@ def inicio():
 def health_check():
     return {
         "estado": "ok",
-        "servicio": "backend"
+        "servicio": "backend",
+        "entorno": settings.environment
     }
