@@ -9,7 +9,7 @@ def cargar_datos_iniciales():
     db = SessionLocal()
 
     try:
-        # 1. Crear la entidad bancaria de prueba
+        # 1. Crear o recuperar la entidad bancaria de prueba
         entidad = db.scalar(
             select(Entidad).where(
                 Entidad.nombre == "Banco de Prueba"
@@ -29,7 +29,7 @@ def cargar_datos_iniciales():
         else:
             print("La entidad bancaria ya existe.")
 
-        # 2. Crear una sucursal de prueba
+        # 2. Crear o recuperar la sucursal de prueba
         sucursal = db.scalar(
             select(Sucursal).where(
                 Sucursal.entidad_id == entidad.id,
@@ -54,7 +54,8 @@ def cargar_datos_iniciales():
         else:
             print("La sucursal ya existe.")
 
-        # 3. Definir los primeros servicios
+        # 3. Catálogo de servicios.
+        # Se conservan los códigos y prefijos originales.
         servicios_iniciales = [
             {
                 "codigo": "CAJA",
@@ -74,8 +75,33 @@ def cargar_datos_iniciales():
                 "categoria": "presencial",
                 "prefijo": "I",
             },
+            {
+                "codigo": "CAJA_PRIORITARIA",
+                "nombre": "Caja prioritaria",
+                "categoria": "presencial",
+                "prefijo": "CP",
+            },
+            {
+                "codigo": "CAJA_TURNOS",
+                "nombre": "Caja turnos",
+                "categoria": "presencial",
+                "prefijo": "CT",
+            },
+            {
+                "codigo": "ASESORIA_PRIORITARIA",
+                "nombre": "Asesoría prioritaria",
+                "categoria": "presencial",
+                "prefijo": "AP",
+            },
+            {
+                "codigo": "ASESORIA_TURNOS",
+                "nombre": "Asesoría turnos",
+                "categoria": "presencial",
+                "prefijo": "AT",
+            },
         ]
 
+        # 4. Crear los servicios que falten y habilitarlos
         for datos in servicios_iniciales:
             servicio = db.scalar(
                 select(Servicio).where(
@@ -96,7 +122,6 @@ def cargar_datos_iniciales():
             else:
                 print(f"El servicio ya existe: {datos['nombre']}")
 
-            # 4. Habilitar el servicio en la sucursal
             relacion = db.scalar(
                 select(ServicioSucursal).where(
                     ServicioSucursal.sucursal_id == sucursal.id,
@@ -115,11 +140,17 @@ def cargar_datos_iniciales():
                 )
                 db.add(relacion)
                 print(
-                    f"Servicio habilitado en la sucursal: "
+                    "Servicio habilitado en la sucursal: "
+                    f"{datos['nombre']}"
+                )
+            else:
+                # No modificar prefijos ni configuraciones existentes.
+                # Así se preservan los códigos de los servicios actuales.
+                print(
+                    "El servicio ya está configurado en la sucursal: "
                     f"{datos['nombre']}"
                 )
 
-        # Guardar los cambios en la base de datos
         db.commit()
         print("\nDatos iniciales cargados correctamente.")
 

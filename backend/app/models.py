@@ -1,4 +1,4 @@
-
+#MODELS.PY
 from datetime import date, datetime
 
 from sqlalchemy import (
@@ -11,6 +11,7 @@ from sqlalchemy import (
     String,
     Text,
     UniqueConstraint,
+    Index,
     func,
 )
 from sqlalchemy.orm import Mapped, mapped_column
@@ -218,6 +219,33 @@ class Turno(Base):
         nullable=False,
     )
 
+    tipo_documento: Mapped[str | None] = mapped_column(
+        String(40),
+        nullable=True,
+    )
+
+    numero_documento: Mapped[str | None] = mapped_column(
+        String(30),
+        nullable=True,
+    )
+
+    fecha_hora_programada: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )
+
+
+    celular: Mapped[str | None] = mapped_column(
+        String(20),
+        nullable=True,
+    )
+
+    congelado_en: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )
+
+
     creado_en: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),
@@ -248,7 +276,19 @@ class Turno(Base):
         DateTime(timezone=True),
         nullable=True,
     )
-
+Index(
+    "uq_turnos_documento_activo",
+    Turno.tipo_documento,
+    Turno.numero_documento,
+    unique=True,
+    postgresql_where=Text(
+        """
+        estado IN ('en_espera', 'llamado', 'retenido')
+        AND tipo_documento IS NOT NULL
+        AND numero_documento IS NOT NULL
+        """
+    ),
+)
 
 class HistorialTurno(Base):
     __tablename__ = "historial_turnos"
